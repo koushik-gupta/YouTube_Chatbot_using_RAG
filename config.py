@@ -1,0 +1,1 @@
+TRANSCRIPT_LANGUAGES = ["en", "hi", "ben", "guj", "mar", "ori", "pan", "tam", "tel", "urd"]
