@@ -1,16 +1,24 @@
 # YouTube Chatbot
 
-A minimal YouTube transcript chatbot built with Streamlit, LangChain, Hugging Face, and Chroma.
+A minimal YouTube transcript chatbot built with Streamlit, LangChain, Hugging Face, Chroma, and Retrieval-Augmented Generation (RAG).
 
-Paste a YouTube video URL, ask a question, and the app answers using the video's available captions.
+Paste a YouTube video URL, ask a question, and the app answers by retrieving relevant transcript chunks before generating a response.
 
 ## Features
 
 - Fetches YouTube captions/transcripts
 - Splits transcripts into searchable chunks
-- Uses Hugging Face embeddings with Chroma retrieval
+- Uses a RAG pipeline with Hugging Face embeddings and Chroma retrieval
 - Answers questions with `meta-llama/Llama-3.1-8B-Instruct`
 - Provides both Streamlit and terminal interfaces
+
+## How It Works
+
+1. The app fetches the video's transcript.
+2. The transcript is split into smaller chunks.
+3. Chunks are embedded and stored in Chroma.
+4. Relevant chunks are retrieved for each question.
+5. The LLM generates an answer using the retrieved context.
 
 ## Setup
 
