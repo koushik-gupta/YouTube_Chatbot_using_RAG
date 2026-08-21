@@ -11,11 +11,13 @@ from youtube import get_video_id
 
 @st.cache_resource
 def get_model():
+    _bust_cache = True
     return create_model()
 
 
 @st.cache_resource
 def get_chain(video_id):
+    _bust_cache = True
     transcript = fetch_transcript(video_id)
 
     if not transcript:
@@ -23,7 +25,7 @@ def get_chain(video_id):
 
     chunks = split_transcript(transcript)
     model = get_model()
-    retriever = create_retriever(chunks, model)
+    retriever = create_retriever(chunks, model, video_id)
     prompt = create_prompt()
     return create_chain(retriever, prompt, model)
 

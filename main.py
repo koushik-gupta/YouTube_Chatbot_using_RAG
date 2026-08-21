@@ -21,7 +21,7 @@ def main():
 
     chunks = split_transcript(transcript)
     model = create_model()
-    retriever = create_retriever(chunks, model)
+    retriever = create_retriever(chunks, model, video_id)
     prompt = create_prompt()
     chain = create_chain(retriever, prompt, model)
 
