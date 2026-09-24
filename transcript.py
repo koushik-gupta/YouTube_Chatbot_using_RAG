@@ -1,12 +1,22 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from youtube_transcript_api import TranscriptsDisabled, YouTubeTranscriptApi
+from youtube_transcript_api import (
+    NoTranscriptFound,
+    RequestBlocked,
+    TranscriptsDisabled,
+    VideoUnavailable,
+    YouTubeTranscriptApi,
+)
 
 from config import TRANSCRIPT_LANGUAGES
 
 
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 200
+
+
+class TranscriptFetchError(Exception):
+    """A short, user-facing explanation for a transcript retrieval failure."""
 
 
 def fetch_transcript(video_id):
@@ -23,9 +33,20 @@ def fetch_transcript(video_id):
             }
             for chunk in transcript_list
         ]
-    except TranscriptsDisabled:
-        print("No captions available for this video.")
-        return []
+    except (TranscriptsDisabled, NoTranscriptFound):
+        raise TranscriptFetchError(
+            "This video does not have captions in the supported languages. "
+            "Try another video or enable captions on the video."
+        )
+    except VideoUnavailable:
+        raise TranscriptFetchError(
+            "This video is unavailable, private, or restricted in your region."
+        )
+    except RequestBlocked:
+        raise TranscriptFetchError(
+            "YouTube is temporarily blocking transcript requests from your network. "
+            "Wait and try again, reduce repeated requests, or use a different network."
+        )
 
 
 def split_transcript(transcript):

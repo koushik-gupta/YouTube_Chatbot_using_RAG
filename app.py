@@ -1,3 +1,5 @@
+import re
+
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -5,8 +7,45 @@ from chain import create_chain
 from llm import create_model
 from prompts import create_prompt
 from retriever import create_retriever
-from transcript import fetch_transcript, split_transcript
+from transcript import TranscriptFetchError, fetch_transcript, split_transcript
 from youtube import get_video_id
+
+
+TIMESTAMP_RANGE_PATTERN = re.compile(
+    r"(?:\[\s*)?(?P<start>\d+(?:\.\d+)?)\s*(?:s|seconds)?\s*(?:-|–|to)\s*"
+    r"(?P<end>\d+(?:\.\d+)?)\s*(?:s|seconds)\b(?:\s*\])?",
+    re.IGNORECASE,
+)
+TIMESTAMP_PATTERN = re.compile(
+    r"(?:\[\s*)?(?<![\w.])(?P<seconds>\d+(?:\.\d+)?)\s*(?:s|seconds)\b(?:\s*\])?",
+    re.IGNORECASE,
+)
+
+
+def format_timestamp(seconds):
+    total_seconds = max(0, int(float(seconds)))
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    if hours:
+        return f"{hours}:{minutes:02d}:{seconds:02d}"
+
+    return f"{minutes}:{seconds:02d}"
+
+
+def format_answer_timestamps(answer):
+    """Turn raw transcript seconds into readable timestamps."""
+
+    def replace_range(match):
+        return f"{format_timestamp(match.group('start'))} - {format_timestamp(match.group('end'))}"
+
+    answer = TIMESTAMP_RANGE_PATTERN.sub(replace_range, answer)
+
+    def replace_timestamp(match):
+        seconds = match.group("seconds")
+        return format_timestamp(seconds)
+
+    return TIMESTAMP_PATTERN.sub(replace_timestamp, answer)
 
 
 @st.cache_resource
@@ -38,10 +77,8 @@ def answer_question(video_url, question):
 
     chain = get_chain(video_id)
 
-    if chain is None:
-        return "No captions available for this video."
-
-    return chain.invoke(question)
+    answer = chain.invoke(question)
+    return format_answer_timestamps(answer)
 
 
 def main():
@@ -71,8 +108,11 @@ def main():
         try:
             with st.spinner("Reading transcript and generating answer..."):
                 response = answer_question(video_url.strip(), question.strip())
-        except Exception as error:
-            st.error(f"Something went wrong: {error}")
+        except TranscriptFetchError as error:
+            st.warning(str(error))
+            return
+        except Exception:
+            st.error("The request could not be completed. Please try again shortly.")
             return
 
         st.subheader("Answer")
