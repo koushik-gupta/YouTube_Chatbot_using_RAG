@@ -2,11 +2,22 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableLambda, RunnableParallel, RunnablePassthrough
 
 
+def _seconds_to_timestamp(seconds):
+    """Convert raw seconds (float/int) to a MM:SS or HH:MM:SS string."""
+    total = max(0, int(float(seconds)))
+    hours, remainder = divmod(total, 3600)
+    minutes, secs = divmod(remainder, 60)
+    if hours:
+        return f"{hours}:{minutes:02d}:{secs:02d}"
+    return f"{minutes}:{secs:02d}"
+
+
 def format_docs(retrieved_docs):
     """Format a list of retrieved Document objects into a single annotated string.
 
     Each document is prefixed with a bracketed metadata header containing the
     video ID, start/end timestamps, chunk number, and segment range (when available).
+    Timestamps are pre-formatted as MM:SS so the LLM cites them in a readable form.
     The resulting string is passed as the {context} variable into the prompt template.
     """
     formatted_docs = []
@@ -19,10 +30,10 @@ def format_docs(retrieved_docs):
             source_parts.append(f"video_id={metadata['video_id']}")
 
         if metadata.get("start") is not None:
-            source_parts.append(f"start={metadata['start']:.2f}s")
+            source_parts.append(f"start={_seconds_to_timestamp(metadata['start'])}")
 
         if metadata.get("end") is not None:
-            source_parts.append(f"end={metadata['end']:.2f}s")
+            source_parts.append(f"end={_seconds_to_timestamp(metadata['end'])}")
 
         if metadata.get("chunk"):
             source_parts.append(f"chunk={metadata['chunk']}")

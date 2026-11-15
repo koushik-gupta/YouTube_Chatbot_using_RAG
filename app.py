@@ -13,7 +13,7 @@ from youtube import get_video_id
 
 TIMESTAMP_RANGE_PATTERN = re.compile(
     r"(?:\[\s*)?(?P<start>\d+(?:\.\d+)?)\s*(?:s|seconds)?\s*(?:-|–|to)\s*"
-    r"(?P<end>\d+(?:\.\d+)?)\s*(?:s|seconds)\b(?:\s*\])?",
+    r"(?P<end>\d+(?:\.\d+)?)\s*(?:s|seconds)?\b(?:\s*\])?",
     re.IGNORECASE,
 )
 TIMESTAMP_PATTERN = re.compile(
