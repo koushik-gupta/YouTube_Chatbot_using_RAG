@@ -59,7 +59,6 @@ def split_transcript(transcript):
         return text_splitter.create_documents([transcript])
 
     grouped_documents = []
-    documents = []
     current_segments = []
     current_length = 0
 

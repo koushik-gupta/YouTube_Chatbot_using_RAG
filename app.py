@@ -50,13 +50,11 @@ def format_answer_timestamps(answer):
 
 @st.cache_resource
 def get_model():
-    _bust_cache = True
     return create_model()
 
 
 @st.cache_resource
 def get_chain(video_id):
-    _bust_cache = True
     transcript = fetch_transcript(video_id)
 
     if not transcript:
