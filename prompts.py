@@ -2,6 +2,12 @@ from langchain_core.prompts import PromptTemplate
 
 
 def create_prompt():
+    """Build and return the PromptTemplate used to instruct the LLM.
+
+    The template injects the retrieved {context} and the user's {question},
+    and includes guardrail instructions to prevent hallucination and to
+    translate non-English content before answering.
+    """
     return PromptTemplate(
         template="""
         your first task is to understand the full context and rectify any wrongly transcribed words. then you have to answer the question based on the provided context. if the answer is not present in the context then you have to say that you don't know. do not try to answer the question if the answer is not present in the context. also do not try to make up an answer. just say that you don't know if the answer is not present in the context.

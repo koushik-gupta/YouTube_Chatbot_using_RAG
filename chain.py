@@ -3,6 +3,12 @@ from langchain_core.runnables import RunnableLambda, RunnableParallel, RunnableP
 
 
 def format_docs(retrieved_docs):
+    """Format a list of retrieved Document objects into a single annotated string.
+
+    Each document is prefixed with a bracketed metadata header containing the
+    video ID, start/end timestamps, chunk number, and segment range (when available).
+    The resulting string is passed as the {context} variable into the prompt template.
+    """
     formatted_docs = []
 
     for doc in retrieved_docs:
@@ -33,6 +39,12 @@ def format_docs(retrieved_docs):
 
 
 def create_chain(retriever, prompt, model):
+    """Build and return the LCEL RAG chain.
+
+    The chain runs the retriever and the passthrough question in parallel,
+    fills the prompt template with the results, passes it to the LLM,
+    and parses the output into a plain string.
+    """
     parallel_chain = RunnableParallel(
         {
             "context": retriever | RunnableLambda(format_docs),

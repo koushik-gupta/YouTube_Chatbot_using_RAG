@@ -23,6 +23,7 @@ TIMESTAMP_PATTERN = re.compile(
 
 
 def format_timestamp(seconds):
+    """Convert a raw seconds value into a human-readable HH:MM:SS or MM:SS string."""
     total_seconds = max(0, int(float(seconds)))
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -34,7 +35,11 @@ def format_timestamp(seconds):
 
 
 def format_answer_timestamps(answer):
-    """Turn raw transcript seconds into readable timestamps."""
+    """Turn raw transcript seconds into readable timestamps.
+
+    Finds all timestamp ranges (e.g. '12.5s - 25.3s') and standalone timestamps
+    (e.g. '45s') in the LLM answer text and replaces them with MM:SS format.
+    """
 
     def replace_range(match):
         return f"{format_timestamp(match.group('start'))} - {format_timestamp(match.group('end'))}"
@@ -50,11 +55,18 @@ def format_answer_timestamps(answer):
 
 @st.cache_resource
 def get_model():
+    """Load and cache the LLM model for the lifetime of the Streamlit app session."""
     return create_model()
 
 
 @st.cache_resource
 def get_chain(video_id):
+    """Build and cache the full RAG chain for a given YouTube video ID.
+
+    Fetches the transcript, splits it into chunks, builds the vector store,
+    and wires up the retriever, prompt, and model into a LangChain pipeline.
+    Returns None if the transcript is empty.
+    """
     transcript = fetch_transcript(video_id)
 
     if not transcript:
@@ -68,6 +80,7 @@ def get_chain(video_id):
 
 
 def answer_question(video_url, question):
+    """Extract the video ID from the URL, run the RAG chain, and return a formatted answer."""
     video_id = get_video_id(video_url)
 
     if not video_id:
@@ -80,6 +93,7 @@ def answer_question(video_url, question):
 
 
 def main():
+    """Entry point for the Streamlit app. Sets up the page layout, form, and response rendering."""
     load_dotenv()
 
     st.set_page_config(

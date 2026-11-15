@@ -20,6 +20,11 @@ class TranscriptFetchError(Exception):
 
 
 def fetch_transcript(video_id):
+    """Fetch the YouTube transcript for a video and return it as a list of segment dicts.
+
+    Each dict contains 'text', 'start', 'duration', and 'video_id' keys.
+    Raises TranscriptFetchError with a user-friendly message on known API failures.
+    """
     ytt_api = YouTubeTranscriptApi()
 
     try:
@@ -50,6 +55,12 @@ def fetch_transcript(video_id):
 
 
 def split_transcript(transcript):
+    """Split a transcript into overlapping LangChain Document chunks with timestamp metadata.
+
+    If the transcript is a plain string it is split directly. Otherwise, the list
+    of segment dicts is grouped into CHUNK_SIZE-character windows with CHUNK_OVERLAP
+    overlap, preserving start/end timestamps and segment indices in each document's metadata.
+    """
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
@@ -63,6 +74,7 @@ def split_transcript(transcript):
     current_length = 0
 
     def create_document(segments, chunk_number):
+        """Build a LangChain Document from a list of transcript segments, attaching metadata."""
         first_segment = segments[0]
         last_segment = segments[-1]
         return Document(
@@ -78,6 +90,11 @@ def split_transcript(transcript):
         )
 
     def get_overlap_segments(segments):
+        """Return the tail portion of a segment list whose combined text length meets CHUNK_OVERLAP.
+
+        These segments are carried over as the start of the next chunk to ensure
+        no content is lost at chunk boundaries.
+        """
         overlap_segments = []
         overlap_length = 0
 

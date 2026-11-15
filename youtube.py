@@ -2,6 +2,11 @@ from urllib.parse import parse_qs, urlparse
 
 
 def get_video_id(video_url):
+    """Extract and return the YouTube video ID from a full URL or short URL.
+
+    If the input is not a recognisable YouTube URL, it is returned as-is
+    (assumed to already be a raw video ID).
+    """
     if "youtube.com" not in video_url and "youtu.be" not in video_url:
         return video_url
 

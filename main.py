@@ -9,6 +9,11 @@ from youtube import get_video_id
 
 
 def main():
+    """Entry point for the CLI version of the chatbot.
+
+    Prompts the user for a YouTube URL, builds the RAG chain, then enters an
+    interactive loop accepting questions until the user types 'exit'.
+    """
     load_dotenv()
 
     video_url = input("Enter the YouTube video URL: ")
